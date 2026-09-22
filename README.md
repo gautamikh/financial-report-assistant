@@ -1,114 +1,154 @@
-# Financial Report Assistant
+<div align="center">
 
-An evidence-focused financial document analysis project built with Python and
-[Docling](https://github.com/docling-project/docling). The application is being
-developed into a retrieval-augmented generation (RAG) assistant that will answer
-questions about company financial reports and show the source evidence behind
-each answer.
+# 📊 Financial Report Assistant
 
-> **Project status:** Early development. PDF ingestion is implemented. Chunking,
-> semantic retrieval, answer generation, citations, evaluation, and the user
-> interface are planned next.
+### Evidence-focused analysis of financial reports with Docling and RAG
 
-## Why this project?
+[![Python](https://img.shields.io/badge/Python-3.13%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+[![Docling](https://img.shields.io/badge/Docling-Document%20AI-6F42C1)](https://docling-project.github.io/docling/)
+[![uv](https://img.shields.io/badge/uv-Package%20Manager-DE5FE9)](https://docs.astral.sh/uv/)
+![Status](https://img.shields.io/badge/Status-Early%20Development-F4B942)
+
+Convert long company reports into structured, searchable documents and build
+toward answers that remain traceable to their original evidence.
+
+</div>
+
+> [!IMPORTANT]
+> **Current status:** PDF ingestion is implemented. Chunking, retrieval,
+> answer generation, citations, evaluation, and the user interface are the next
+> development stages.
+
+## 🧭 Table of contents
+
+- [About the project](#-about-the-project)
+- [Current features](#-current-features)
+- [Planned features](#-planned-features)
+- [How it works](#️-how-it-works)
+- [Technology](#️-technology)
+- [Project structure](#-project-structure)
+- [Getting started](#-getting-started)
+- [Verify the conversion](#-verify-the-conversion)
+- [Roadmap](#️-roadmap)
+- [Data and privacy](#-data-and-privacy)
+- [Disclaimer](#️-disclaimer)
+
+## 💡 About the project
 
 Annual reports and regulatory filings contain valuable information, but they
-are long and difficult to search manually. This project aims to make those
-documents easier to explore while keeping answers traceable to the original
-report.
+are often hundreds of pages long and difficult to search manually. The
+Financial Report Assistant aims to make those documents easier to explore while
+keeping every answer connected to verifiable source evidence.
 
-The finished assistant should be able to answer questions such as:
+The finished assistant should answer questions such as:
 
-- What were the main drivers of revenue growth?
-- How did operating expenses change from the previous year?
-- Which risks did management identify?
-- What evidence in the report supports the answer?
+- 📈 What were the main drivers of revenue growth?
+- 💰 How did operating expenses change from the previous year?
+- ⚠️ Which risks did management identify?
+- 🔎 Which passages and pages support the answer?
 
-This project is intended for document analysis and learning. It does not provide
-investment advice.
+### 🎯 Project goals
 
-## Current features
+| Goal | Why it matters |
+|---|---|
+| Preserve document structure | Headings, tables, and sections provide essential context |
+| Retain page provenance | Users must be able to verify an answer in the source report |
+| Ground every answer | Fluent but unsupported financial claims are not acceptable |
+| Evaluate retrieval | Search quality should be measured instead of guessed |
+| Handle uncertainty | The assistant should admit when the report lacks enough evidence |
 
-- Accepts a local PDF financial report
-- Validates that the input exists and is a PDF
-- Converts the report with Docling
-- Exports readable Markdown for manual inspection
-- Exports structured Docling JSON for downstream processing and provenance
-- Keeps source reports and generated output out of Git through `.gitignore`
+## ✅ Current features
 
-## Planned features
+- [x] Accept a local financial-report PDF
+- [x] Validate that the input exists and uses the PDF format
+- [x] Convert the report with Docling
+- [x] Export readable Markdown for manual inspection
+- [x] Export structured Docling JSON for downstream processing
+- [x] Preserve source structure and provenance for later citations
+- [x] Exclude source reports, generated output, environments, and secrets from Git
 
-- Structure-aware document chunking
-- Page and section metadata for citations
-- Local text embeddings
-- Semantic and hybrid retrieval
-- Evidence-grounded answer generation
-- Insufficient-evidence handling
-- A Streamlit user interface
-- Retrieval and answer-quality evaluation
-- Support for multiple reports, companies, and reporting periods
+## 🚧 Planned features
 
-## Current processing pipeline
+- [ ] Structure-aware document chunking
+- [ ] Page and section metadata for citations
+- [ ] Local text embeddings
+- [ ] Semantic and hybrid retrieval
+- [ ] Evidence-grounded answer generation
+- [ ] Insufficient-evidence handling
+- [ ] Streamlit user interface
+- [ ] Retrieval and answer-quality evaluation
+- [ ] Multiple reports, companies, and reporting periods
 
-```text
-Financial-report PDF
-        |
-        v
-Docling document conversion
-        |
-        +--> Markdown for human inspection
-        |
-        +--> Structured JSON for chunking and provenance
-```
+## ⚙️ How it works
 
-The planned RAG stages will extend this pipeline:
+### Current ingestion pipeline
 
 ```text
-Structured document
-        |
-        v
-Page-aware chunks
-        |
-        v
-Embeddings and retrieval
-        |
-        v
-LLM answer with source citations
+📄 Financial-report PDF
+          │
+          ▼
+🧠 Docling document conversion
+          │
+          ├──► 📝 Markdown for human inspection
+          │
+          └──► 🧩 Structured JSON for chunking and provenance
 ```
 
-## Technology
+### Planned RAG pipeline
 
-- Python 3.13+
-- [uv](https://docs.astral.sh/uv/) for Python and dependency management
-- [Docling](https://docling-project.github.io/docling/) for document conversion
-- Git and GitHub for version control
+```text
+🧩 Structured document
+          │
+          ▼
+✂️ Page-aware chunks
+          │
+          ▼
+🔢 Embeddings and retrieval
+          │
+          ▼
+💬 LLM answer with source citations
+```
 
-More dependencies will be introduced only when their corresponding feature is
-implemented.
+> [!NOTE]
+> The language model will be the presentation layer—not the source of financial
+> facts. Answers must come from retrieved report evidence.
 
-## Project structure
+## 🛠️ Technology
+
+| Tool | Purpose |
+|---|---|
+| [Python 3.13+](https://www.python.org/) | Application and data-processing language |
+| [uv](https://docs.astral.sh/uv/) | Python version, environment, and dependency management |
+| [Docling](https://docling-project.github.io/docling/) | PDF conversion, layout understanding, tables, and provenance |
+| Git | Local version control |
+| GitHub | Remote repository and project portfolio |
+
+Additional dependencies will be introduced only when their corresponding
+features are implemented.
+
+## 📁 Project structure
 
 ```text
 financial_report_assistant/
-|-- data/                       # Local source reports (not committed)
-|-- output/                     # Generated Markdown and JSON (not committed)
-|-- src/
-|   `-- financial_report_assistant/
-|       |-- __init__.py
-|       `-- ingest.py           # Docling ingestion command
-|-- tests/                      # Automated tests will be added here
-|-- .gitignore
-|-- .python-version
-|-- pyproject.toml
-|-- uv.lock
-`-- README.md
+├── data/                       # Local source reports (not committed)
+├── output/                     # Generated Markdown and JSON (not committed)
+├── src/
+│   └── financial_report_assistant/
+│       ├── __init__.py
+│       └── ingest.py           # Docling ingestion command
+├── tests/                      # Automated tests will be added here
+├── .gitignore
+├── .python-version
+├── pyproject.toml
+├── uv.lock
+└── README.md
 ```
 
-## Getting started
+## 🚀 Getting started
 
 ### Prerequisites
 
-Install:
+Install the following tools:
 
 - [Git](https://git-scm.com/downloads)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
@@ -132,23 +172,27 @@ uv sync
 
 Download a public annual report from an official company investor-relations
 website or from [SEC EDGAR](https://www.sec.gov/search-filings). Place the PDF
-inside `data/`, for example:
+inside `data/`:
 
 ```text
 data/annual_report.pdf
 ```
 
+> [!TIP]
+> Start with a text-based PDF in which you can select words with your cursor.
+> Scanned reports may require additional OCR configuration.
+
 The `data/` directory is intentionally excluded from Git.
 
 ### 4. Convert the report
 
-From the repository root, run:
+Run the command from the repository root:
 
 ```powershell
 uv run python .\src\financial_report_assistant\ingest.py .\data\annual_report.pdf
 ```
 
-To select a different output directory:
+To choose a different output directory:
 
 ```powershell
 uv run python .\src\financial_report_assistant\ingest.py `
@@ -163,40 +207,58 @@ output/annual_report.md
 output/annual_report.json
 ```
 
-## Verifying the conversion
+## 🔍 Verify the conversion
 
-Before using the document in a RAG pipeline, compare the generated Markdown
-with the original PDF. Check:
+A successful command does not guarantee that every table or page was
+interpreted correctly. Compare the generated Markdown with the original PDF
+before building retrieval on top of it.
 
-- Section headings and reading order
-- Financial tables and their column order
-- Currency symbols, units, and negative values
-- Footnotes
-- Page provenance in the structured JSON
+### Inspection checklist
 
-A successful conversion command does not guarantee that every table or page was
-interpreted correctly. Extraction quality must be verified before retrieval is
-built on top of it.
+- [ ] Section headings appear in the correct order
+- [ ] Paragraphs follow the original reading order
+- [ ] Financial table columns match their correct years
+- [ ] Currency symbols and units are preserved
+- [ ] Negative values remain negative
+- [ ] Footnotes remain associated with the correct content
+- [ ] The structured JSON contains page provenance
 
-## Development roadmap
+## 🗺️ Roadmap
 
-1. Convert and validate a financial-report PDF
-2. Create structure-aware chunks with page metadata
-3. Generate local embeddings
-4. Implement semantic retrieval
-5. Add grounded answer generation and citations
-6. Build an evaluation dataset
-7. Add a web interface
-8. Support report and company comparisons
+| Phase | Milestone | Status |
+|---:|---|:---:|
+| 1 | Convert and validate a financial-report PDF | ✅ Complete |
+| 2 | Create structure-aware chunks with page metadata | 🚧 Next |
+| 3 | Generate local embeddings | ⏳ Planned |
+| 4 | Implement semantic and hybrid retrieval | ⏳ Planned |
+| 5 | Add grounded answers and citations | ⏳ Planned |
+| 6 | Build an evaluation dataset | ⏳ Planned |
+| 7 | Add a web interface | ⏳ Planned |
+| 8 | Support company and report comparisons | ⏳ Planned |
 
-## Data and privacy
+## 🔐 Data and privacy
 
-The repository does not include source financial reports, generated extraction
-files, virtual environments, or `.env` files. Never commit API keys or other
-secrets.
+The repository intentionally excludes:
 
-## Disclaimer
+- Source financial reports
+- Generated Markdown and JSON
+- Python virtual environments
+- `.env` files
+- API keys and other secrets
 
-This project is for educational and informational purposes only. It is not
-financial, investment, tax, or legal advice. Generated answers must be verified
-against the cited source documents.
+Never commit credentials, personal data, or private financial documents.
+
+## ⚖️ Disclaimer
+
+This project is for educational and informational purposes only. It does not
+provide financial, investment, tax, or legal advice. Generated answers must
+always be verified against the cited source documents.
+
+---
+
+<div align="center">
+
+Built as a hands-on project for learning document AI, RAG, evaluation, and
+responsible financial-data analysis. 🚀
+
+</div>
