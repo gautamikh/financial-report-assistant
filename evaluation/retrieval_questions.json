@@ -1,0 +1,50 @@
+[
+  {
+    "id": "total-revenue-2025",
+    "question": "What was Alphabet's total revenue in 2025?",
+    "relevant_chunk_ids": [
+      "alphabet_2025_annual_report-chunk-0291"
+    ],
+    "expected_pages": [56],
+    "status": "verified"
+  },
+  {
+    "id": "revenue-sources",
+    "question": "What were Alphabet's main sources of revenue?",
+    "relevant_chunk_ids": [],
+    "expected_pages": [],
+    "status": "needs-review"
+  },
+ {
+  "id": "operating-expenses",
+  "question": "What factors caused Alphabet's operating expenses to increase?",
+  "relevant_chunk_ids": [
+    "replace-with-verified-chunk-id",
+    "replace-with-another-chunk-if-needed"
+  ],
+  "expected_pages": [38, 39],
+  "status": "verified"
+},
+  {
+    "id": "ai-risks",
+    "question": "What risks does Alphabet identify regarding artificial intelligence?",
+    "relevant_chunk_ids": [],
+    "expected_pages": [],
+    "status": "needs-review"
+  },
+  {
+    "id": "cash-balance",
+    "question": "How much cash and cash equivalents did Alphabet report?",
+    "relevant_chunk_ids": [],
+    "expected_pages": [],
+    "status": "needs-review"
+  },
+  {
+    "id": "future-revenue",
+    "question": "What will Alphabet's revenue be in 2035?",
+    "relevant_chunk_ids": [],
+    "expected_pages": [],
+    "answerable": false,
+    "status": "verified"
+  }
+]
