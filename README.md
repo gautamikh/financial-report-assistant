@@ -2,47 +2,46 @@
 
 # 📊 Financial Report Assistant
 
-### Evidence-focused analysis of financial reports with Docling and RAG
+### Evidence-focused financial-report retrieval with Docling, FAISS, BM25, and RAG
 
 [![Python](https://img.shields.io/badge/Python-3.13%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Docling](https://img.shields.io/badge/Docling-Document%20AI-6F42C1)](https://docling-project.github.io/docling/)
+[![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-0467DF)](https://github.com/facebookresearch/faiss)
 [![uv](https://img.shields.io/badge/uv-Package%20Manager-DE5FE9)](https://docs.astral.sh/uv/)
-![Status](https://img.shields.io/badge/Status-Early%20Development-F4B942)
+![Status](https://img.shields.io/badge/Status-Retrieval%20Evaluation-F4B942)
 
-Convert long company reports into structured, searchable documents and build
-toward answers that remain traceable to their original evidence.
+Convert long annual reports into structured, searchable evidence and retrieve
+the passages needed for grounded financial analysis.
 
 </div>
 
-> [!IMPORTANT]
-> **Current status:** PDF ingestion is implemented. Chunking, retrieval,
-> answer generation, citations, evaluation, and the user interface are the next
-> development stages.
+
 
 ## 🧭 Table of contents
 
 - [About the project](#-about-the-project)
 - [Current features](#-current-features)
-- [Planned features](#-planned-features)
-- [How it works](#️-how-it-works)
+- [Architecture](#️-architecture)
 - [Technology](#️-technology)
 - [Project structure](#-project-structure)
 - [Getting started](#-getting-started)
-- [Verify the conversion](#-verify-the-conversion)
+- [Run the pipeline](#-run-the-pipeline)
+- [Evaluate retrieval](#-evaluate-retrieval)
+- [Design decisions](#-design-decisions)
 - [Roadmap](#️-roadmap)
 - [Data and privacy](#-data-and-privacy)
 - [Disclaimer](#️-disclaimer)
 
 ## 💡 About the project
 
-Annual reports and regulatory filings contain valuable information, but they
-are often hundreds of pages long and difficult to search manually. The
-Financial Report Assistant aims to make those documents easier to explore while
-keeping every answer connected to verifiable source evidence.
+Annual reports contain valuable financial information, but they are often
+hundreds of pages long and difficult to explore manually. This project builds
+the retrieval foundation for an assistant that can answer questions while
+keeping every claim connected to evidence in the source report.
 
-The finished assistant should answer questions such as:
+Example questions include:
 
-- 📈 What were the main drivers of revenue growth?
+- 📈 What were the company's main sources of revenue?
 - 💰 How did operating expenses change from the previous year?
 - ⚠️ Which risks did management identify?
 - 🔎 Which passages and pages support the answer?
@@ -52,91 +51,78 @@ The finished assistant should answer questions such as:
 | Goal | Why it matters |
 |---|---|
 | Preserve document structure | Headings, tables, and sections provide essential context |
-| Retain page provenance | Users must be able to verify an answer in the source report |
-| Ground every answer | Fluent but unsupported financial claims are not acceptable |
+| Retain page provenance | Users must be able to verify answers in the source report |
+| Combine semantic and keyword search | Financial questions contain both concepts and exact terminology |
 | Evaluate retrieval | Search quality should be measured instead of guessed |
-| Handle uncertainty | The assistant should admit when the report lacks enough evidence |
+| Handle uncertainty | The finished assistant should refuse unsupported conclusions |
 
-## ✅ Current features
 
-- [x] Accept a local financial-report PDF
-- [x] Validate that the input exists and uses the PDF format
-- [x] Convert the report with Docling
-- [x] Export readable Markdown for manual inspection
-- [x] Export structured Docling JSON for downstream processing
-- [x] Preserve source structure and provenance for later citations
-- [x] Exclude source reports, generated output, environments, and secrets from Git
-
-## 🚧 Planned features
-
-- [ ] Structure-aware document chunking
-- [ ] Page and section metadata for citations
-- [ ] Local text embeddings
-- [ ] Semantic and hybrid retrieval
-- [ ] Evidence-grounded answer generation
-- [ ] Insufficient-evidence handling
-- [ ] Streamlit user interface
-- [ ] Retrieval and answer-quality evaluation
-- [ ] Multiple reports, companies, and reporting periods
-
-## ⚙️ How it works
-
-### Current ingestion pipeline
+## ⚙️ Architecture
 
 ```text
 📄 Financial-report PDF
           │
           ▼
-🧠 Docling document conversion
+🧠 Docling conversion
           │
           ├──► 📝 Markdown for human inspection
-          │
-          └──► 🧩 Structured JSON for chunking and provenance
+          └──► 🧩 Structured Docling JSON
+                          │
+                          ▼
+               ✂️ Structure-aware chunks
+                 + headings and page metadata
+                          │
+                          ▼
+               🔢 Normalized local embeddings
+                          │
+                          ▼
+                  🗂️ FAISS vector index
+                          │
+          ┌───────────────┴───────────────┐
+          ▼                               ▼
+ 🔍 Semantic vector search         🔤 BM25 keyword search
+          └───────────────┬───────────────┘
+                          ▼
+              🔀 Reciprocal Rank Fusion
+                          │
+                          ▼
+              📚 Ranked evidence passages
+                          │
+                          ▼
+          💬 Grounded answers with citations
+                    (next milestone)
 ```
 
-### Planned RAG pipeline
 
-```text
-🧩 Structured document
-          │
-          ▼
-✂️ Page-aware chunks
-          │
-          ▼
-🔢 Embeddings and retrieval
-          │
-          ▼
-💬 LLM answer with source citations
-```
-
-> [!NOTE]
-> The language model will be the presentation layer—not the source of financial
-> facts. Answers must come from retrieved report evidence.
 
 ## 🛠️ Technology
 
 | Tool | Purpose |
 |---|---|
 | [Python 3.13+](https://www.python.org/) | Application and data-processing language |
-| [uv](https://docs.astral.sh/uv/) | Python version, environment, and dependency management |
-| [Docling](https://docling-project.github.io/docling/) | PDF conversion, layout understanding, tables, and provenance |
-| Git | Local version control |
-| GitHub | Remote repository and project portfolio |
-
-Additional dependencies will be introduced only when their corresponding
-features are implemented.
+| [uv](https://docs.astral.sh/uv/) | Environment and dependency management |
+| [Docling](https://docling-project.github.io/docling/) | PDF layout, tables, text, and provenance extraction |
+| [Sentence Transformers](https://www.sbert.net/) | Local document and query embeddings |
+| [FAISS](https://github.com/facebookresearch/faiss) | Exact vector similarity search |
+| [rank-bm25](https://github.com/dorianbrown/rank_bm25) | Lexical keyword retrieval |
+| Git and GitHub | Version control and portfolio hosting |
 
 ## 📁 Project structure
 
 ```text
 financial_report_assistant/
-├── data/                       # Local source reports (not committed)
-├── output/                     # Generated Markdown and JSON (not committed)
+├── data/                           # Local PDFs; not committed
+├── evaluation/
+│   └── retrieval_questions.json    # Manually verified relevance labels
+├── output/                         # Generated artifacts; not committed
 ├── src/
 │   └── financial_report_assistant/
-│       ├── __init__.py
-│       └── ingest.py           # Docling ingestion command
-├── tests/                      # Automated tests will be added here
+│       ├── ingest.py               # Convert PDF to Markdown and Docling JSON
+│       ├── chunk_document.py       # Create page-aware JSONL chunks
+│       ├── build_index.py          # Generate embeddings and build FAISS index
+│       ├── search.py               # Vector-search baseline
+│       ├── hybrid_search.py        # FAISS + BM25 + RRF retrieval
+│       └── evaluate_retrieval.py   # Compare retrieval strategies
 ├── .gitignore
 ├── .python-version
 ├── pyproject.toml
@@ -147,8 +133,6 @@ financial_report_assistant/
 ## 🚀 Getting started
 
 ### Prerequisites
-
-Install the following tools:
 
 - [Git](https://git-scm.com/downloads)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
@@ -166,88 +150,131 @@ cd financial-report-assistant
 uv sync
 ```
 
-`uv` creates and manages the project virtual environment automatically.
+`uv` creates and manages the virtual environment automatically.
 
 ### 3. Add a financial report
 
-Download a public annual report from an official company investor-relations
-website or from [SEC EDGAR](https://www.sec.gov/search-filings). Place the PDF
-inside `data/`:
+Download a public annual report from an official investor-relations website or
+from [SEC EDGAR](https://www.sec.gov/search-filings), then place it in `data/`.
+
+The examples below use:
 
 ```text
-data/annual_report.pdf
+data/alphabet_2025_annual_report.pdf
 ```
 
-> [!TIP]
-> Start with a text-based PDF in which you can select words with your cursor.
-> Scanned reports may require additional OCR configuration.
 
-The `data/` directory is intentionally excluded from Git.
+## ▶️ Run the pipeline
 
-### 4. Convert the report
+Run all commands from the repository root.
 
-Run the command from the repository root:
-
-```powershell
-uv run python .\src\financial_report_assistant\ingest.py .\data\annual_report.pdf
-```
-
-To choose a different output directory:
+### 1. Convert the PDF
 
 ```powershell
 uv run python .\src\financial_report_assistant\ingest.py `
-    .\data\annual_report.pdf `
-    --output-dir .\output
+  .\data\alphabet_2025_annual_report.pdf `
+  --output-dir .\output
 ```
 
-Successful conversion creates:
+This creates readable Markdown and structured Docling JSON. Inspect the
+Markdown against the original report before continuing, especially tables,
+negative numbers, units, footnotes, and reading order.
+
+### 2. Create structure-aware chunks
+
+```powershell
+uv run python .\src\financial_report_assistant\chunk_document.py `
+  .\output\alphabet_2025_annual_report.json `
+  --output-path .\output\alphabet_2025_chunks.jsonl `
+  --company "Alphabet" `
+  --fiscal-year 2025 `
+  --document-type "annual-report"
+```
+
+Each chunk includes its text, contextualized embedding text, headings, page
+numbers, document references, token count, and report metadata.
+
+### 3. Build the FAISS index
+
+```powershell
+uv run python .\src\financial_report_assistant\build_index.py `
+  .\output\alphabet_2025_chunks.jsonl `
+  --output-dir .\output\alphabet_2025_index
+```
+
+The index directory contains:
 
 ```text
-output/annual_report.md
-output/annual_report.json
+index.faiss       # Normalized vectors
+metadata.jsonl    # Chunk data in matching FAISS row order
+manifest.json     # Model, dimensions, metric, and index configuration
 ```
 
-## 🔍 Verify the conversion
+### 4. Run hybrid retrieval
 
-A successful command does not guarantee that every table or page was
-interpreted correctly. Compare the generated Markdown with the original PDF
-before building retrieval on top of it.
+```powershell
+uv run python .\src\financial_report_assistant\hybrid_search.py `
+  "What were Alphabet's main sources of revenue?" `
+  --index-dir .\output\alphabet_2025_index `
+  --candidate-k 20 `
+  --top-k 5
+```
 
-### Inspection checklist
+The command prints the fused rank, vector and BM25 ranks, similarity scores,
+chunk ID, page numbers, section headings, and retrieved passage.
 
-- [ ] Section headings appear in the correct order
-- [ ] Paragraphs follow the original reading order
-- [ ] Financial table columns match their correct years
-- [ ] Currency symbols and units are preserved
-- [ ] Negative values remain negative
-- [ ] Footnotes remain associated with the correct content
-- [ ] The structured JSON contains page provenance
+## 🧪 Evaluate retrieval
+
+`evaluation/retrieval_questions.json` stores manually verified questions and
+relevant chunk IDs. Only verified, answerable questions with relevance labels
+are included in the automated evaluation.
+
+```powershell
+uv run python .\src\financial_report_assistant\evaluate_retrieval.py `
+  --index-dir .\output\alphabet_2025_index `
+  --questions .\evaluation\retrieval_questions.json `
+  --candidate-k 20 `
+  --top-k 5
+```
+
+The evaluator compares vector, BM25, and hybrid rankings using:
+
+| Metric | Meaning |
+|---|---|
+| Hit Rate@5 | Fraction of questions with at least one relevant chunk in the top five |
+| Recall@5 | Fraction of all labelled relevant chunks found in the top five |
+| MRR | Average reciprocal rank of the first relevant result |
+
+Unanswerable questions are reserved for a later evaluation of the assistant's
+ability to refuse unsupported answers.
+
+
 
 ## 🗺️ Roadmap
 
 | Phase | Milestone | Status |
 |---:|---|:---:|
 | 1 | Convert and validate a financial-report PDF | ✅ Complete |
-| 2 | Create structure-aware chunks with page metadata | 🚧 Next |
-| 3 | Generate local embeddings | ⏳ Planned |
-| 4 | Implement semantic and hybrid retrieval | ⏳ Planned |
-| 5 | Add grounded answers and citations | ⏳ Planned |
-| 6 | Build an evaluation dataset | ⏳ Planned |
-| 7 | Add a web interface | ⏳ Planned |
-| 8 | Support company and report comparisons | ⏳ Planned |
-
+| 2 | Create structure-aware chunks with page metadata | ✅ Complete |
+| 3 | Generate local embeddings and build a FAISS index | ✅ Complete |
+| 4 | Implement vector, BM25, and hybrid retrieval | ✅ Complete |
+| 5 | Build and label the retrieval evaluation set | 🚧 In progress |
+| 6 | Generate evidence-grounded answers with citations | ⏳ Next |
+| 7 | Evaluate answer faithfulness and unsupported-question refusal | ⏳ Planned |
+| 8 | Add a Streamlit user interface | ⏳ Planned |
+| 9 | Support multiple companies and reporting periods | ⏳ Planned |
 
 ## ⚖️ Disclaimer
 
 This project is for educational and informational purposes only. It does not
-provide financial, investment, tax, or legal advice. Generated answers must
-always be verified against the cited source documents.
+provide financial, investment, tax, or legal advice. Any generated answer must
+be verified against its cited source document.
 
 ---
 
 <div align="center">
 
-Built as a hands-on project for learning document AI, RAG, evaluation, and
-responsible financial-data analysis. 🚀
+Built as a hands-on project for learning document AI, information retrieval,
+RAG evaluation, and responsible financial-data analysis. 🚀
 
 </div>
