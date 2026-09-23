@@ -236,17 +236,6 @@ before building retrieval on top of it.
 | 7 | Add a web interface | ⏳ Planned |
 | 8 | Support company and report comparisons | ⏳ Planned |
 
-## 🔐 Data and privacy
-
-The repository intentionally excludes:
-
-- Source financial reports
-- Generated Markdown and JSON
-- Python virtual environments
-- `.env` files
-- API keys and other secrets
-
-Never commit credentials, personal data, or private financial documents.
 
 ## ⚖️ Disclaimer
 
