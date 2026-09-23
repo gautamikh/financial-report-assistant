@@ -532,10 +532,14 @@ version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
     { name = "docling" },
+    { name = "transformers" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "docling", specifier = ">=2.129.0" }]
+requires-dist = [
+    { name = "docling", specifier = ">=2.129.0" },
+    { name = "transformers", specifier = ">=5.17.0" },
+]
 
 [[package]]
 name = "fsspec"
