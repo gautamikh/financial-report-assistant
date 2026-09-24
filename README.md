@@ -8,7 +8,7 @@
 [![Docling](https://img.shields.io/badge/Docling-Document%20AI-6F42C1)](https://docling-project.github.io/docling/)
 [![FAISS](https://img.shields.io/badge/FAISS-Vector%20Search-0467DF)](https://github.com/facebookresearch/faiss)
 [![uv](https://img.shields.io/badge/uv-Package%20Manager-DE5FE9)](https://docs.astral.sh/uv/)
-![Status](https://img.shields.io/badge/Status-Retrieval%20Evaluation-F4B942)
+![Status](https://img.shields.io/badge/Status-Local%20RAG%20Demo-22A06B)
 
 Convert long annual reports into structured, searchable evidence and retrieve
 the passages needed for grounded financial analysis.
@@ -20,12 +20,12 @@ the passages needed for grounded financial analysis.
 ## 🧭 Table of contents
 
 - [About the project](#-about-the-project)
-- [Current features](#-current-features)
 - [Architecture](#️-architecture)
 - [Technology](#️-technology)
 - [Project structure](#-project-structure)
 - [Getting started](#-getting-started)
 - [Run the pipeline](#-run-the-pipeline)
+- [Run the web interface](#️-run-the-web-interface)
 - [Evaluate retrieval](#-evaluate-retrieval)
 - [Design decisions](#-design-decisions)
 - [Roadmap](#️-roadmap)
@@ -89,8 +89,13 @@ Example questions include:
               📚 Ranked evidence passages
                           │
                           ▼
-          💬 Grounded answers with citations
-                    (next milestone)
+                 🦙 Local Ollama model
+                          │
+                          ▼
+          💬 Grounded answer + citation validation
+                          │
+                          ▼
+                 🖥️ Streamlit interface
 ```
 
 
@@ -105,6 +110,8 @@ Example questions include:
 | [Sentence Transformers](https://www.sbert.net/) | Local document and query embeddings |
 | [FAISS](https://github.com/facebookresearch/faiss) | Exact vector similarity search |
 | [rank-bm25](https://github.com/dorianbrown/rank_bm25) | Lexical keyword retrieval |
+| [Ollama](https://ollama.com/) | Local language-model inference |
+| [Streamlit](https://streamlit.io/) | Interactive question-answering interface |
 | Git and GitHub | Version control and portfolio hosting |
 
 ## 📁 Project structure
@@ -122,7 +129,9 @@ financial_report_assistant/
 │       ├── build_index.py          # Generate embeddings and build FAISS index
 │       ├── search.py               # Vector-search baseline
 │       ├── hybrid_search.py        # FAISS + BM25 + RRF retrieval
-│       └── evaluate_retrieval.py   # Compare retrieval strategies
+│       ├── evaluate_retrieval.py   # Compare retrieval strategies
+│       ├── generate_answer.py      # Ollama generation and citation checks
+│       └── app.py                  # Streamlit user interface
 ├── .gitignore
 ├── .python-version
 ├── pyproject.toml
@@ -136,6 +145,7 @@ financial_report_assistant/
 
 - [Git](https://git-scm.com/downloads)
 - [uv](https://docs.astral.sh/uv/getting-started/installation/)
+- [Ollama](https://ollama.com/download)
 
 ### 1. Clone the repository
 
@@ -223,6 +233,37 @@ uv run python .\src\financial_report_assistant\hybrid_search.py `
 The command prints the fused rank, vector and BM25 ranks, similarity scores,
 chunk ID, page numbers, section headings, and retrieved passage.
 
+### 5. Generate a grounded answer
+
+Confirm that Ollama is running and note the exact installed model name:
+
+```powershell
+ollama list
+```
+
+Then ask a question. Replace `qwen2:7b` if you use another installed model:
+
+```powershell
+uv run python .\src\financial_report_assistant\generate_answer.py `
+  "What was Alphabet's total revenue in 2025?" `
+  --index-dir .\output\alphabet_2025_index `
+  --model "qwen2:7b" `
+  --candidate-k 20 `
+  --top-k 5
+```
+
+The generator requires the model to use retrieved passages, cite labels such as
+`[S1]`, preserve financial units, and refuse when evidence is insufficient.
+
+## 🖥️ Run the web interface
+
+```powershell
+uv run streamlit run .\src\financial_report_assistant\app.py
+```
+
+Open `http://localhost:8501` if the browser does not open automatically. The
+sidebar controls the index, Ollama model, and retrieval settings. Answers
+include expandable evidence with page, section, chunk ID, and passage text.
 ## 🧪 Evaluate retrieval
 
 `evaluation/retrieval_questions.json` stores manually verified questions and
@@ -245,12 +286,24 @@ The evaluator compares vector, BM25, and hybrid rankings using:
 | Recall@5 | Fraction of all labelled relevant chunks found in the top five |
 | MRR | Average reciprocal rank of the first relevant result |
 
-Unanswerable questions are reserved for a later evaluation of the assistant's
-ability to refuse unsupported answers.
+The current labels provide an initial diagnostic rather than a production
+benchmark. The evaluation set should grow to cover more question types,
+multi-passage answers, exact values, and difficult negatives.
 
 
 
-## 🗺️ Roadmap
+## 🧠 Design decisions
+
+- **Docling:** preserves layout, tables, headings, and page provenance.
+- **Structure-aware chunks:** retain context while respecting the token budget.
+- **FAISS `IndexFlatIP`:** provides exact cosine search for this prototype.
+- **Hybrid retrieval:** combines semantic and exact-term matching; its weighting
+  still needs tuning based on the evaluation results.
+- **Local Ollama generation:** keeps the application local and avoids requiring
+  a hosted-model API key.
+- **Retrieval before generation:** makes report evidence the source of facts.
+
+<!-- ## 🗺️ Roadmap
 
 | Phase | Milestone | Status |
 |---:|---|:---:|
@@ -259,10 +312,13 @@ ability to refuse unsupported answers.
 | 3 | Generate local embeddings and build a FAISS index | ✅ Complete |
 | 4 | Implement vector, BM25, and hybrid retrieval | ✅ Complete |
 | 5 | Build and label the retrieval evaluation set | 🚧 In progress |
-| 6 | Generate evidence-grounded answers with citations | ⏳ Next |
-| 7 | Evaluate answer faithfulness and unsupported-question refusal | ⏳ Planned |
-| 8 | Add a Streamlit user interface | ⏳ Planned |
-| 9 | Support multiple companies and reporting periods | ⏳ Planned |
+| 6 | Generate evidence-grounded answers with citations | ✅ Complete |
+| 7 | Add citation validation guardrails | ✅ Complete |
+| 8 | Add a Streamlit user interface | ✅ Complete |
+| 9 | Tune hybrid retrieval and expand the evaluation set | 🚧 Next |
+| 10 | Evaluate answer faithfulness and refusal behavior | ⏳ Planned |
+| 11 | Support multiple companies and reporting periods | ⏳ Planned | -->
+
 
 ## ⚖️ Disclaimer
 
